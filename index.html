@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <title>London Fire Brigade incidents(dc.js-2.0.0-beta.23)</title>
+    
+    <!-- Libraries -->
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="../bower_components/d3-tip/index.js"></script>
+    <script src="../bower_components/colorbrewer/colorbrewer.js"></script>
+    <script src="../bower_components/crossfilter/crossfilter.min.js"></script>
+    <script src="../bower_components/dc.js-2.0.0-beta.23/dc.min.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="../css/custom-styles.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap-theme.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/dc.js-2.0.0-beta.23/dc.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/colorbrewer/colorbrewer.css">
+
+<!-- Temp style for layout -->
+<style>
+    div {
+        border:1px solid lightgrey;
+        }
+</style>
+
+
+</head>
+<body>
+<div class="container">
+    <div class="row Header"><h3>Details of the fires and other emergency incidents attended by the London Fire Brigade</h3>
+        <div class="col-md-4"><a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</div>
+        <div class="col-md-4">B. Lorem ipsum dolor sit amet, consectetur adipiscing elit. </div>
+        <div class="col-md-4">C. Lorem ipsum dolor sit amet, consectetur adipiscing elit. </div>
+    </div>
+        <div class="row mainContent01">
+        <div class="col-md-12" id='dc-incident-chart' ><h5>Chart A</h5>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae delectus mollitia cumque veniam unde repellendus nemo dolorum nihil ipsam eos.</div>
+    </div>
+    <div class="row mainContent02">
+        <div class="col-md-6" ><h5>Chart C</h5>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae delectus mollitia cumque veniam unde repellendus nemo dolorum nihil ipsam eos.</div>
+        <div class="col-md-6" id='dc-london-series-chart'>London overview</div>
+    </div>
+    <div class="row dataTable"
+        <div class="col-md-12"> 
+        <h4>Data table</h4>
+                <table class='table table-hover' id='dc-population-table'>
+                    <thead>
+                        <tr class='header'>
+                            <th>Lorem ipsum</th>
+                            <th>Lorem ipsum</th>
+                            <th>Lorem ipsum</th>
+                            <th>Lorem ipsum</th>
+                            <th>Lorem ipsum</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+    <div class="row Footer">
+        <div class="col-md-4">4 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloribus, voluptate.</div>
+        <div class="col-md-4">4 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nobis, nemo?</div>
+        <div class="col-md-4">4 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Totam, sit!</div>
+    </div>
+</div>
+
+ <script type="text/javascript">
+
+d3.csv("../data/LFB-incident-data-03.csv", function(csv) {
+
+
+        
+////////// Formats  //////////
+
+        var dateFormat = d3.time.format("%d-%b-%y");
+        var timeFormat = d3.time.format("%X");
+
+        var incidentBarChart = dc.barChart("#dc-incident-chart");
+
+
+
+////////// Tidy up the CSV values and force integers.  ///////////////////
+
+csv.forEach(function (d) {
+            d.callDate = d.dateOfCall,
+            d.weekDay = d.dayOfWeek, 
+            d.callTime = timeFormat.parse(d.timeOfCall),
+            d.incidentType = d.incidentGroup,
+            d.stopCode = d.stopCodeDescription,
+            d.categoryProperty = d.propertyCategory,
+            d.postCodeShort = d.postcodeDistrict,
+            d.boroName = d.geoBoroughName,
+            d.incidentStation = d.incidentStationGround,
+            d.firstPumpArrive = +d.firstPumpTime,
+            d.firstPumpStation = d.firstPumpDeployed
+        });
+
+    var dataSet = crossfilter(csv);
+
+/////////// Main dimension ////////////////////////
+
+        var incidentDays = dataSet.dimension(function(d){
+            return d.callDate;
+        });
+
+        var incidentDaysGroup = incidentDays.group();
+
+
+<!-- Bar chart -->
+    
+
+incidentBarChart
+        .width(1150)
+        .height(600)
+        .margins({top: 30, right: 30, bottom: 90, left: 60})
+        .dimension(incidentDays)
+        .group(incidentDaysGroup)
+        .gap(1)
+        //.brushOn(true)
+        .renderHorizontalGridLines(true)
+        .yAxisLabel("Number of incidents per day")
+        .xAxisLabel("Date")
+        .elasticY(true)
+        .x(d3.scale.ordinal())   
+        .xUnits(dc.units.ordinal);
+
+         // Renderlet to format the x axis text.
+        incidentBarChart.on("renderlet", function(chart) {
+            chart.selectAll("g.x text").attr('transform', "rotate(-90)").style("text-anchor", "end");
+        });
+
+
+        // print_filter("incidentDays");
+        print_filter("incidentDaysGroup");
+
+//  Utility function    
+function print_filter(filter){
+    var f=eval(filter);
+    if (typeof(f.length) != "undefined") {}else{}
+    if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+    if (typeof(f.dimension) != "undefined") {f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+    console.log(filter+"("+f.length+") = "+JSON.stringify(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+}
+
+// Render the charts
+dc.renderAll(); 
+
+}); // Extent of CSV function. 
+
+    </script>
+    </body>
+</html>
